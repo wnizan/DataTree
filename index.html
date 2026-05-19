@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" id="html-root">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Tree Labs — ML & AI Solutions by Nizan Waintraub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Sans+Hebrew:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+/* ── TOKENS ─────────────────────────────────────────── */
+:root {
+  --bg:       #FAF9F7;
+  --bg-w:     #FFFFFF;
+  --bg-warm:  #F6F3EF;
+  --navy:     #111827;
+  --navy2:    #172033;
+  --text2:    #5B6475;
+  --muted:    #7A8394;
+  --gold:     #C8A46B;
+  --gold-lo:  rgba(200,164,107,.09);
+  --gold-bd:  rgba(200,164,107,.26);
+  --sage:     #8B9D8B;
+  --sage-lo:  rgba(139,157,139,.07);
+  --sage-bd:  rgba(139,157,139,.2);
+  --stone:    #D8D2C8;
+  --stone-lo: rgba(216,210,200,.18);
+  --border:   #DDD6CC;
+  --border-s: #E7E1D8;
+  --ff:       'Inter', sans-serif;
+  --ff-h:     'Manrope', 'Inter', sans-serif;
+  --px:       clamp(24px, 6vw, 96px);
+  --max:      1120px;
+}
+
+/* ── RESET ──────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--navy);
+  font-family:var(--ff);line-height:1.6;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+a{color:inherit;text-decoration:none}
+ul{list-style:none}
+
+/* Hebrew font override */
+[lang="he"] body,[lang="he"] { font-family:'IBM Plex Sans Hebrew','Inter',sans-serif }
+[lang="he"] .ff-h,
+[lang="he"] h1,[lang="he"] h2,[lang="he"] .sec-title,
+[lang="he"] .sc-name,[lang="he"] .wi-title,
+[lang="he"] .hero-h1,.why-bio-name {
+  font-family:'IBM Plex Sans Hebrew','Manrope',sans-serif;
+}
+
+/* ── NAV ────────────────────────────────────────────── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:68px;
+  display:flex;align-items:center;justify-content:center;
+  padding:0 var(--px);
+  background:rgba(250,249,247,.92);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  width:100%;max-width:var(--max);
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;
+}
+.nav-brand{display:flex;align-items:center;gap:12px}
+.nav-brand img{height:52px;width:52px;object-fit:contain;display:block}
+.nav-byline{font-size:10.5px;color:var(--muted);letter-spacing:.04em;margin-top:1px}
+.nav-byline strong{color:var(--text2);font-weight:500}
+.nav-links{display:flex;gap:24px;justify-self:center}
+.nav-links a{
+  font-size:13.5px;font-weight:500;color:var(--text2);
+  transition:color .18s;letter-spacing:-.01em;
+}
+.nav-links a:hover{color:var(--navy)}
+.nav-r{display:flex;align-items:center;gap:14px;justify-self:end}
+.nav-cta{
+  display:inline-flex;align-items:center;
+  font-size:13.5px;font-weight:500;color:var(--text2);
+  letter-spacing:-.01em;
+  background:none;border:none;padding:0;
+  cursor:pointer;transition:color .18s;
+}
+.nav-cta:hover{color:var(--navy)}
+.lang-pill{
+  display:flex;align-items:center;
+  background:var(--bg-w);border:1px solid var(--border);
+  border-radius:20px;padding:3px;gap:2px;
+}
+.lb{
+  font-size:11px;font-weight:600;letter-spacing:.04em;
+  color:var(--muted);padding:4px 11px;border-radius:14px;
+  cursor:pointer;border:none;background:none;transition:all .2s;
+}
+.lb.on{background:#1A2238;color:rgba(255,255,255,.92)}
+
+/* ── HERO ────────────────────────────────────────────── */
+.hero{
+  min-height:100vh;display:flex;align-items:center;
+  padding:120px var(--px) 80px;
+  position:relative;overflow:hidden;
+}
+.hero-logo-bg{
+  position:absolute;
+  left:67%;top:50%;
+  transform:translate(-50%,-50%);
+  width:min(38vw,440px);height:auto;
+  pointer-events:none;
+  opacity:.06;
+  mix-blend-mode:multiply;
+}
+[dir="rtl"] .hero-logo-bg{left:33%;}
+/* hero-logo-bg is centered — no RTL override needed */
+.hero-inner{
+  max-width:var(--max);margin:0 auto;width:100%;
+  position:relative;z-index:1;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:11px;font-weight:500;
+  color:var(--gold);letter-spacing:.2em;text-transform:uppercase;
+  margin-bottom:26px;
+}
+.hero-eyebrow-line{
+  display:inline-block;width:24px;height:1px;background:var(--gold);flex-shrink:0;
+}
+[dir="rtl"] .hero-eyebrow-line:first-child{display:none}
+.hero-h1{
+  font-family:var(--ff-h);
+  font-size:clamp(38px,5vw,70px);
+  font-weight:600;letter-spacing:-0.032em;
+  line-height:1.07;color:var(--navy);
+  margin-bottom:22px;max-width:720px;
+  text-wrap:pretty;
+}
+.hero-sub{
+  font-size:clamp(15px,1.6vw,17px);
+  color:var(--text2);max-width:480px;
+  line-height:1.72;margin-bottom:16px;
+  font-weight:400;
+}
+.hero-byline{
+  font-size:12.5px;color:var(--muted);
+  margin-bottom:44px;letter-spacing:.01em;
+}
+.hero-byline strong{color:var(--gold);font-weight:500}
+.hero-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn-dark{
+  display:inline-flex;align-items:center;gap:8px;
+  background:#1A2238;color:rgba(255,255,255,.92);
+  font-size:13px;font-weight:500;letter-spacing:.02em;
+  padding:10px 24px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.05);
+  cursor:pointer;transition:background .2s,box-shadow .2s;
+}
+.btn-dark:hover{background:#25325A;box-shadow:0 2px 16px rgba(26,34,56,.14)}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:6px;
+  color:var(--text2);font-size:13px;font-weight:500;letter-spacing:.02em;
+  padding:9px 20px;border-radius:8px;
+  border:1px solid #D8D2C8;background:transparent;
+  cursor:pointer;transition:border-color .2s,background .2s,color .2s;
+}
+.btn-ghost:hover{background:#F5F2ED;border-color:#C8B89A;color:var(--navy)}
+
+/* ── SHARED SECTION ─────────────────────────────────── */
+.section{padding:96px var(--px)}
+.sec-inner{max-width:var(--max);margin:0 auto}
+.sec-label{
+  font-size:10px;font-weight:600;
+  color:var(--gold);letter-spacing:.22em;text-transform:uppercase;
+  margin-bottom:10px;
+}
+.sec-title{
+  font-family:var(--ff-h);
+  font-size:clamp(24px,2.6vw,38px);
+  font-weight:600;letter-spacing:-0.028em;
+  line-height:1.12;color:var(--navy);
+}
+.sec-head{margin-bottom:48px}
+
+/* ── SERVICES ────────────────────────────────────────── */
+#services{background:var(--bg-w)}
+.srv-grid{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:14px;
+}
+.sc{
+  background:rgba(255,255,255,.88);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid var(--border-s);border-radius:24px;
+  padding:28px 24px 24px;
+  display:flex;flex-direction:column;grid-column:span 2;
+  transition:box-shadow .25s,transform .22s,border-color .22s;
+}
+.sc:nth-child(4){grid-column:span 3}
+.sc:nth-child(5){grid-column:span 3}
+.sc:hover{
+  box-shadow:0 5px 24px rgba(15,23,42,.06);
+  transform:translateY(-2px);border-color:var(--gold-bd);
+}
+.sc-icon{
+  width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;margin-bottom:16px;flex-shrink:0;
+}
+.sc-icon svg{width:16px;height:16px}
+.sc-name{
+  font-family:var(--ff-h);
+  font-size:14px;font-weight:600;
+  color:var(--navy);letter-spacing:-0.01em;
+  margin-bottom:8px;line-height:1.3;
+}
+.sc-desc{
+  font-size:12.5px;color:var(--text2);
+  line-height:1.6;margin-bottom:16px;flex:1;
+}
+.sc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto}
+.sc-tag{
+  font-size:10.5px;font-weight:500;color:var(--sage);
+  background:var(--sage-lo);border:1px solid var(--sage-bd);
+  border-radius:20px;padding:2px 9px;
+}
+
+/* ── FOR WHO ─────────────────────────────────────────── */
+#for{background:var(--bg-w)}
+.for-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.fi{
+  display:flex;align-items:center;gap:14px;
+  padding:20px 22px;
+  background:var(--bg-w);border:1px solid var(--stone);border-radius:14px;
+  transition:border-color .2s,background .2s;
+}
+.fi:hover{border-color:var(--gold-bd);background:#FDFCFA;}
+.fi:hover{border-color:var(--gold-bd)}
+.fi-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.fi-text{font-size:14px;color:var(--text2);line-height:1.5}
+
+/* ── WHY (about) ─────────────────────────────────────── */
+#why{background:var(--bg-w)}
+.why-layout{
+  display:grid;grid-template-columns:240px 1fr;
+  gap:72px;align-items:start;
+}
+.why-photo-wrap{display:flex;flex-direction:column;align-items:flex-start}
+.why-photo{
+  width:100%;aspect-ratio:3/4;
+  background:var(--stone-lo);border:1px solid var(--stone);
+  border-radius:20px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:6px;
+  margin-bottom:16px;overflow:hidden;
+  position:relative;
+}
+.photo-placeholder-inner{
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.photo-initials{
+  font-family:var(--ff-h);font-size:36px;font-weight:600;
+  color:rgba(139,157,139,.5);letter-spacing:-0.02em;
+}
+.photo-hint{
+  font-size:10px;color:var(--muted);letter-spacing:.1em;
+  text-transform:uppercase;text-align:center;max-width:100px;line-height:1.4;
+}
+.why-name{
+  font-family:var(--ff-h);font-size:15px;font-weight:600;
+  color:var(--navy);letter-spacing:-0.02em;
+  margin-bottom:3px;
+}
+.why-role{font-size:12.5px;color:var(--text2)}
+.why-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.wi{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:20px 18px;
+  border:1px solid var(--stone);border-radius:14px;
+  transition:border-color .2s,background .2s;
+}
+.wi:hover{border-color:var(--gold-bd)}
+.wi-check{
+  width:20px;height:20px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--gold-lo);border-radius:50%;margin-top:1px;
+}
+.wi-check svg{width:9px;height:9px}
+.wi-title{
+  font-family:var(--ff-h);
+  font-size:13px;font-weight:600;color:var(--navy);
+  margin-bottom:2px;letter-spacing:-0.01em;
+}
+.wi-sub{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ── CONTACT ──────────────────────────────────────────── */
+#contact{background:var(--bg-w)}
+.ct-box{
+  max-width:520px;
+  border:1px solid var(--stone);border-radius:24px;
+  padding:48px 44px;background:var(--bg-w);
+}
+.ct-h{
+  font-family:var(--ff-h);
+  font-size:clamp(24px,2.8vw,36px);
+  font-weight:600;letter-spacing:-0.03em;
+  color:var(--navy);margin-bottom:12px;line-height:1.1;
+}
+.ct-sub{font-size:14.5px;color:var(--text2);margin-bottom:32px;line-height:1.65}
+.ct-link{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:14.5px;font-weight:500;color:var(--navy);
+  border:1px solid var(--border);border-radius:10px;
+  padding:13px 22px;
+  transition:border-color .2s,box-shadow .2s;
+}
+.ct-link:hover{border-color:var(--gold);box-shadow:0 2px 12px rgba(200,164,107,.13)}
+.ct-link svg{flex-shrink:0}
+.ct-name{
+  margin-top:14px;font-size:12.5px;color:var(--muted);
+}
+.ct-name strong{color:var(--text2);font-weight:500}
+
+/* ── FOOTER ───────────────────────────────────────────── */
+footer{
+  padding:22px var(--px);border-top:1px solid var(--border);
+  background:var(--bg-w);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.foot-brand{display:flex;align-items:center;gap:10px}
+.foot-brand img{height:28px;width:28px;object-fit:contain;opacity:.5}
+.foot-brand-text{font-size:12px;color:var(--muted)}
+.foot-copy{font-size:12px;color:var(--muted)}
+
+/* ── FADE IN ──────────────────────────────────────────── */
+.fade{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+.fade.in{opacity:1;transform:none}
+.d1{transition-delay:.06s}.d2{transition-delay:.12s}.d3{transition-delay:.18s}
+.d4{transition-delay:.24s}.d5{transition-delay:.30s}
+
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media(max-width:980px){
+  .srv-grid{grid-template-columns:repeat(2,1fr)}
+  .sc,.sc:nth-child(4),.sc:nth-child(5){grid-column:span 1}
+  .nav-links,.nav-cta{display:none}
+  .nav-inner{grid-template-columns:1fr auto}
+  .why-layout{grid-template-columns:1fr;gap:40px}
+  .why-photo-wrap{flex-direction:row;align-items:center;gap:20px}
+  .why-photo{width:100px;aspect-ratio:1;border-radius:50%}
+}
+@media(max-width:640px){
+  .srv-grid{grid-template-columns:1fr}
+  .for-grid,.why-grid{grid-template-columns:1fr}
+  .ct-box{padding:32px 24px}
+  .hero-logo-bg{opacity:.04}
+  :root{--px:24px}
+}
+</style>
+<template id="__bundler_thumbnail" data-bg-color="#FAF9F7">
+  <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+    <!-- bg -->
+    <rect width="800" height="600" fill="#FAF9F7"/>
+    <!-- tree icon (circuit tree) -->
+    <g stroke="#1B2A4A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(400,300) scale(1.6)">
+      <line x1="0" y1="80" x2="0" y2="0"/>
+      <polyline points="0,10 -55,10 -55,-50"/>
+      <polyline points="0,10 55,10 55,-50"/>
+      <polyline points="-55,-20 -85,-20 -85,-70"/>
+      <polyline points="-55,-20 -25,-20 -25,-70"/>
+      <polyline points="55,-20 25,-20 25,-70"/>
+      <polyline points="55,-20 85,-20 85,-70"/>
+    </g>
+    <g fill="#1B2A4A" transform="translate(400,300) scale(1.6)">
+      <circle cx="-55" cy="-50" r="5"/>
+      <circle cx="55"  cy="-50" r="5"/>
+      <circle cx="-85" cy="-70" r="4"/>
+      <circle cx="-25" cy="-70" r="4"/>
+      <circle cx="25"  cy="-70" r="4"/>
+      <circle cx="85"  cy="-70" r="4"/>
+    </g>
+    <!-- gold dots -->
+    <g fill="#C8A46B" transform="translate(400,300) scale(1.6)">
+      <rect x="-18" y="55" width="7" height="7" rx="1.5"/>
+      <rect x="-4"  y="62" width="5" height="5" rx="1"/>
+      <rect x="10"  y="55" width="7" height="7" rx="1.5"/>
+    </g>
+    <!-- wordmark -->
+    <text x="400" y="490" font-family="sans-serif" font-size="22" font-weight="600" fill="#0F172A" text-anchor="middle" letter-spacing="-0.5">Data Tree Labs</text>
+    <text x="400" y="514" font-family="sans-serif" font-size="13" fill="#94A3B8" text-anchor="middle" letter-spacing="2">DATA SCIENCE · ML · AI</text>
+  </svg>
+</template>
+</head>
+<body>
+
+<!-- NAV ─────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <img src="uploads/DataTree_logo.png" alt="Data Tree Labs" />
+      <div>
+        <div style="font-family:'Manrope',sans-serif;font-weight:600;font-size:13.5px;letter-spacing:-.02em;line-height:1.1">Data Tree Labs</div>
+        <div class="nav-byline" data-i18n="nav_by">by <strong>Nizan Waintraub</strong></div>
+      </div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#services" data-i18n="nav_s">Services</a></li>
+      <li><a href="#for"      data-i18n="nav_f">For Who</a></li>
+      <li><a href="#why"      data-i18n="nav_w">About</a></li>
+      <li><a href="#contact"  data-i18n="nav_c">Contact</a></li>
+    </ul>
+    <div class="nav-r">
+      <div class="lang-pill" role="group" aria-label="Language">
+        <button class="lb on" data-lang="en">EN</button>
+        <button class="lb"    data-lang="he">עב</button>
+      </div>
+      <a href="#contact" class="nav-cta" data-i18n="nav_cta" data-comment-anchor="090303fb2d-a">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO ────────────────────────────────────────────── -->
+<section class="hero" id="hero">
+  <img class="hero-logo-bg" src="uploads/DataTree_logo.png" alt="" aria-hidden="true" />
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <span class="hero-eyebrow-line"></span>
+      <span data-i18n="eyebrow">Data Science &nbsp;·&nbsp; ML &nbsp;·&nbsp; AI</span>
+    </div>
+    <h1 class="hero-h1" data-i18n="h1">Building Intelligent<br>Data &amp; AI Systems</h1>
+    <p class="hero-sub" data-i18n="hsub">I help companies design, build, and deploy ML and AI systems that create real business value — from early architecture to production-ready solutions.</p>
+    <p class="hero-byline" data-i18n="hby">Founded by <strong>Nizan Waintraub</strong> — Data &amp; AI Systems Expert</p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-dark" data-i18n="hcta" data-comment-anchor="ee99f72602-a">Contact</a>
+      <a href="#services" class="btn-ghost" data-i18n="hcta2">Explore Services</a>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES ─────────────────────────────────────────── -->
+<section class="section" id="services">
+  <div class="sec-inner">
+    <div class="sec-head fade">
+      <div class="sec-label" data-i18n="sl">What I Do</div>
+      <h2 class="sec-title" data-i18n="st">Services</h2>
+    </div>
+    <div class="srv-grid">
+
+      <div class="sc fade d1">
+        <div class="sc-icon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="#C8A46B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="1,13 5,8.5 8,11 12.5,6 15,8"/>
+            <circle cx="1"  cy="13" r="1.1" fill="#C8A46B" stroke="none"/>
+            <circle cx="15" cy="8"  r="1.1" fill="#C8A46B" stroke="none"/>
+          </svg>
+        </div>
+        <div class="sc-name" data-i18n="n1">Data Analysis &amp; Decision Making</div>
+        <p class="sc-desc" data-i18n="d1">Clear insights from complex business data.</p>
+        <div class="sc-tags">
+          <span class="sc-tag" data-i18n="t1a">KPI Dashboards</span>
+          <span class="sc-tag" data-i18n="t1b">Trend Analysis</span>
+          <span class="sc-tag" data-i18n="t1c">Optimization</span>
+        </div>
+      </div>
+
+      <div class="sc fade d2">
+        <div class="sc-icon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="#C8A46B" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <circle cx="8" cy="8" r="5.5"/>
+            <path d="M8 5v3l2.5 2"/>
+          </svg>
+        </div>
+        <div class="sc-name" data-i18n="n2">Machine Learning Development</div>
+        <p class="sc-desc" data-i18n="d2">Predictive models built for your specific business use case.</p>
+        <div class="sc-tags">
+          <span class="sc-tag" data-i18n="t2a">Classification</span>
+          <span class="sc-tag" data-i18n="t2b">Recommendations</span>
+          <span class="sc-tag" data-i18n="t2c">Anomaly Detection</span>
+        </div>
+      </div>
+
+      <div class="sc fade d3">
+        <div class="sc-icon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="#C8A46B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="1.5" y="1.5" width="5" height="5" rx="1.2"/>
+            <rect x="9.5" y="1.5" width="5" height="5" rx="1.2"/>
+            <rect x="1.5" y="9.5" width="5" height="5" rx="1.2"/>
+            <rect x="9.5" y="9.5" width="5" height="5" rx="1.2"/>
+          </svg>
+        </div>
+        <div class="sc-name" data-i18n="n3">AI Implementation for Organizations</div>
+        <p class="sc-desc" data-i18n="d3">AI and automation integrated into existing workflows.</p>
+        <div class="sc-tags">
+          <span class="sc-tag" data-i18n="t3a">Generative AI</span>
+          <span class="sc-tag" data-i18n="t3b">Workflow Automation</span>
+          <span class="sc-tag" data-i18n="t3c">System Integration</span>
+        </div>
+      </div>
+
+      <div class="sc fade d4">
+        <div class="sc-icon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="#C8A46B" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <circle cx="8" cy="4.5" r="2.2"/>
+            <path d="M3.5 14c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4"/>
+            <path d="M12.5 6.5c1.2.5 2.5 1.6 2.5 3.5"/>
+            <path d="M3.5 6.5C2.3 7 1 8.1 1 10"/>
+          </svg>
+        </div>
+        <div class="sc-name" data-i18n="n4">AI Agents &amp; Automation</div>
+        <p class="sc-desc" data-i18n="d4">Autonomous agents connected across your business stack — CRM, APIs, and LLM systems built to run continuously.</p>
+        <div class="sc-tags">
+          <span class="sc-tag" data-i18n="t4a">Agentic AI</span>
+          <span class="sc-tag" data-i18n="t4b">LLM Automation</span>
+          <span class="sc-tag" data-i18n="t4c">CRM &amp; API</span>
+        </div>
+      </div>
+
+      <div class="sc fade d5">
+        <div class="sc-icon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="#C8A46B" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <path d="M2.5 5h11M2.5 8.5h7M2.5 12h5"/>
+          </svg>
+        </div>
+        <div class="sc-name" data-i18n="n5">Training &amp; Professional Guidance</div>
+        <p class="sc-desc" data-i18n="d5">Hands-on ML and AI training, mentoring, and structured guidance for teams building real systems.</p>
+        <div class="sc-tags">
+          <span class="sc-tag" data-i18n="t5a">Workshops</span>
+          <span class="sc-tag" data-i18n="t5b">Mentoring</span>
+          <span class="sc-tag" data-i18n="t5c">AI Roadmaps</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOR WHO ──────────────────────────────────────────── -->
+<section class="section" id="for">
+  <div class="sec-inner">
+    <div class="sec-head fade">
+      <div class="sec-label" data-i18n="fl">Who Is It For</div>
+      <h2 class="sec-title" data-i18n="ft">Who Is It For?</h2>
+    </div>
+    <div class="for-grid">
+      <div class="fi fade d1"><div class="fi-dot"></div><div class="fi-text" data-i18n="f1">Companies looking to extract more value from their data</div></div>
+      <div class="fi fade d2"><div class="fi-dot"></div><div class="fi-text" data-i18n="f2">Organizations aiming to integrate AI into daily operations</div></div>
+      <div class="fi fade d3"><div class="fi-dot"></div><div class="fi-text" data-i18n="f3">Startups seeking hands-on guidance in ML and AI</div></div>
+      <div class="fi fade d4"><div class="fi-dot"></div><div class="fi-text" data-i18n="f4">Teams looking for practical training and technical mentorship</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY / ABOUT ─────────────────────────────────────── -->
+<section class="section" id="why">
+  <div class="sec-inner">
+    <div class="why-layout">
+
+      <!-- left: personal block -->
+      <div class="why-photo-wrap fade">
+        <div class="why-photo">
+          <div class="photo-placeholder-inner">
+            <div class="photo-initials">NW</div>
+            <div class="photo-hint" data-i18n="photo_hint">Add photo here</div>
+          </div>
+        </div>
+        <div class="why-name">Nizan Waintraub</div>
+        <div class="why-role" data-i18n="role">ML &amp; AI Expert</div>
+      </div>
+
+      <!-- right: why points -->
+      <div>
+        <div class="sec-head fade">
+          <div class="sec-label" data-i18n="wl">Why Work With Nizan</div>
+          <h2 class="sec-title" data-i18n="wt">Why Work With Nizan?</h2>
+        </div>
+        <div class="why-grid">
+          <div class="wi fade d1">
+            <div class="wi-check"><svg viewBox="0 0 9 9" fill="none" stroke="#C8A46B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1.5,5 3.5,7 7.5,2"/></svg></div>
+            <div>
+              <div class="wi-title" data-i18n="w1t">Real-World ML &amp; AI Experience</div>
+              <div class="wi-sub"   data-i18n="w1s">Production ML systems deployed across industries</div>
+            </div>
+          </div>
+          <div class="wi fade d2">
+            <div class="wi-check"><svg viewBox="0 0 9 9" fill="none" stroke="#C8A46B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1.5,5 3.5,7 7.5,2"/></svg></div>
+            <div>
+              <div class="wi-title" data-i18n="w2t">End-to-End Delivery</div>
+              <div class="wi-sub"   data-i18n="w2s">From early architecture to live, operational systems</div>
+            </div>
+          </div>
+          <div class="wi fade d3">
+            <div class="wi-check"><svg viewBox="0 0 9 9" fill="none" stroke="#C8A46B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1.5,5 3.5,7 7.5,2"/></svg></div>
+            <div>
+              <div class="wi-title" data-i18n="w3t">Business + Technical Understanding</div>
+              <div class="wi-sub"   data-i18n="w3s">Bridging data strategy and engineering execution</div>
+            </div>
+          </div>
+          <div class="wi fade d4">
+            <div class="wi-check"><svg viewBox="0 0 9 9" fill="none" stroke="#C8A46B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="1.5,5 3.5,7 7.5,2"/></svg></div>
+            <div>
+              <div class="wi-title" data-i18n="w4t">Practical AI Solutions</div>
+              <div class="wi-sub"   data-i18n="w4s">Built for real usage — not just demos</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT ─────────────────────────────────────────── -->
+<section class="section" id="contact">
+  <div class="sec-inner">
+    <div class="ct-box fade">
+      <h2 class="ct-h" data-i18n="ch">Get in Touch</h2>
+      <p class="ct-sub" data-i18n="cs">Interested in working together? I'm always happy to explore how ML and AI can help your business — no pressure, no pitch.</p>
+      <a href="mailto:wnizan@gmail.com" class="ct-link">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="#C8A46B" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <rect x="1" y="3" width="13" height="9" rx="1.8"/>
+          <polyline points="1,5 7.5,9.5 14,5"/>
+        </svg>
+        wnizan@gmail.com
+      </a>
+      <a href="https://www.linkedin.com/in/nizan-waintraub" target="_blank" rel="noopener" class="ct-link" style="margin-top:10px">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+          <rect x="1" y="1" width="13" height="13" rx="2.5" stroke="#C8A46B" stroke-width="1.5"/>
+          <rect x="3.2" y="5.8" width="1.8" height="5.2" fill="#C8A46B" rx="0.3"/>
+          <circle cx="4.1" cy="3.9" r="1" fill="#C8A46B"/>
+          <path d="M6.8 7.2c0-.4.3-1.4 1.8-1.4 1.2 0 1.8.7 1.8 2v3.2h-1.8V8c0-.5-.2-1-.9-1s-1 .5-1 1v3h-1.8V5.8h1.9v1.4z" fill="#C8A46B"/>
+        </svg>
+        LinkedIn
+      </a>
+      <p class="ct-name" data-i18n="cn"><strong>Nizan Waintraub</strong> — Data Tree Labs</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER ──────────────────────────────────────────── -->
+<footer>
+  <div class="foot-brand">
+    <img src="uploads/DataTree_logo.png" alt="Data Tree Labs" />
+    <span class="foot-brand-text" data-i18n="foot_brand">Data Tree Labs &nbsp;·&nbsp; by Nizan Waintraub</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:20px">
+    <a href="https://www.linkedin.com/in/nizan-waintraub" target="_blank" rel="noopener"
+       style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;transition:color .18s"
+       onmouseover="this.style.color='#C8A46B'" onmouseout="this.style.color=''">
+      <svg width="13" height="13" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+        <rect x="1" y="1" width="13" height="13" rx="2.5" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="3.2" y="5.8" width="1.8" height="5.2" fill="currentColor" rx="0.3"/>
+        <circle cx="4.1" cy="3.9" r="1" fill="currentColor"/>
+        <path d="M6.8 7.2c0-.4.3-1.4 1.8-1.4 1.2 0 1.8.7 1.8 2v3.2h-1.8V8c0-.5-.2-1-.9-1s-1 .5-1 1v3h-1.8V5.8h1.9v1.4z" fill="currentColor"/>
+      </svg>
+      LinkedIn
+    </a>
+    <span class="foot-copy" data-i18n="fc">© 2025 Data Tree Labs</span>
+  </div>
+</footer>
+
+<script>
+const T = {
+  en: {
+    nav_by:"Founded by <strong>Nizan Waintraub</strong>",
+    nav_s:"Services", nav_f:"For Who", nav_w:"About", nav_c:"Contact", nav_cta:"Contact",
+    eyebrow:"Data Science\u00a0 ·\u00a0 ML\u00a0 ·\u00a0 AI",
+    h1:"Building Intelligent\nData & AI Systems",
+    hsub:"I help companies design, build, and deploy ML and AI systems that create real business value — from early architecture to production-ready solutions.",
+    hby:"Founded by <strong>Nizan Waintraub</strong> \u2014 Data & AI Systems Expert",
+    hcta:"Contact", hcta2:"Explore Services",
+    sl:"What I Do", st:"Services",
+    n1:"Data Analysis & Decision Making",
+    d1:"Clear insights from complex business data.",
+    t1a:"KPI Dashboards", t1b:"Trend Analysis", t1c:"Optimization",
+    n2:"Machine Learning Development",
+    d2:"Predictive models built for your specific business use case.",
+    t2a:"Classification", t2b:"Recommendations", t2c:"Anomaly Detection",
+    n3:"AI Implementation for Organizations",
+    d3:"AI and automation integrated into existing workflows.",
+    t3a:"Generative AI", t3b:"Workflow Automation", t3c:"System Integration",
+    n4:"AI Agents & Automation",
+    d4:"Autonomous agents connected across your business stack — CRM, APIs, and LLM systems built to run continuously.",
+    t4a:"Agentic AI", t4b:"LLM Automation", t4c:"CRM & API",
+    n5:"Training & Professional Guidance",
+    d5:"Hands-on ML and AI training, mentoring, and structured guidance for teams building real systems.",
+    t5a:"Workshops", t5b:"Mentoring", t5c:"AI Roadmaps",
+    fl:"Who Is It For", ft:"Who Is It For?",
+    f1:"Companies looking to extract more value from their data",
+    f2:"Organizations aiming to integrate AI into daily operations",
+    f3:"Startups seeking hands-on guidance in ML and AI",
+    f4:"Teams looking for practical training and technical mentorship",
+    photo_hint:"Add photo here",
+    role:"Data & AI Systems Expert",
+    wl:"Why Work With Nizan", wt:"Why Work With Nizan?",
+    w1t:"Real-World ML & AI Experience", w1s:"Production systems deployed across industries",
+    w2t:"End-to-End Delivery",           w2s:"From architecture to operational deployment",
+    w3t:"Business + Technical Understanding", w3s:"Bridging business goals with scalable systems",
+    w4t:"Practical AI Solutions",        w4s:"Built for real usage \u2014 not just demos",
+    ch:"Get in Touch",
+    cs:"Interested in working together? Happy to explore how ML and AI can create real value for your business.",
+    cn:"<strong>Nizan Waintraub</strong> — Data Tree Labs",
+    foot_brand:"Data Tree Labs\u00a0 ·\u00a0 Founded by Nizan Waintraub",
+    fc:"© 2025 Data Tree Labs"
+  },
+  he: {
+    nav_by:"נוסד על ידי <strong>ניצן וינטראוב</strong>",
+    nav_s:"שירותים", nav_f:"למי מתאים", nav_w:"אודות", nav_c:"צור קשר", nav_cta:"צור קשר",
+    eyebrow:"Data Science\u00a0 ·\u00a0 ML\u00a0 ·\u00a0 AI",
+    h1:"פיתוח מערכות\nData ו-AI חכמות",
+    hsub:"אני עוזר לחברות לתכנן, לפתח ולהטמיע מערכות ML ו-AI שיוצרות ערך עסקי אמיתי — מארכיטקטורה ראשונית ועד פתרונות מוכנים לייצור.",
+    hby:"נוסד על ידי <strong>ניצן וינטראוב</strong> \u2014 מומחה Data ו-AI",
+    hcta:"צור קשר", hcta2:"השירותים",
+    sl:"מה אני עושה", st:"שירותים",
+    n1:"ניתוח נתונים וקבלת החלטות",
+    d1:"תובנות ברורות מנתונים עסקיים מורכבים.",
+    t1a:"דשבורדים ו-KPI", t1b:"ניתוח מגמות", t1c:"אופטימיזציה",
+    n2:"פיתוח מודלים של Machine Learning",
+    d2:"מודלים חיזויים שנבנו לצורך העסקי הספציפי שלכם.",
+    t2a:"סיווג", t2b:"המלצות", t2c:"זיהוי חריגות",
+    n3:"הטמעת AI בארגונים",
+    d3:"כלי AI ואוטומציה משולבים בתהליכי העבודה הקיימים.",
+    t3a:"Generative AI", t3b:"אוטומציה", t3c:"אינטגרציית מערכות",
+    n4:"AI Agents ואוטומציה",
+    d4:"סוכנים אוטונומיים מחוברים לאורך כל ה-stack העסקי — CRM, APIs ומערכות LLM שפועלות ברציפות.",
+    t4a:"Agentic AI", t4b:"LLM Automation", t4c:"CRM ו-API",
+    n5:"הדרכה והכוונה מקצועית",
+    d5:"הדרכה מעשית ב-ML ו-AI, מנטורינג וליווי מובנה לצוותים שבונים מערכות אמיתיות.",
+    t5a:"סדנאות", t5b:"מנטורינג", t5c:"מפות דרך AI",
+    fl:"למי מתאים", ft:"למי זה מתאים?",
+    f1:"חברות שמעוניינות להפיק יותר ערך מהנתונים שלהן",
+    f2:"ארגונים המעוניינים לשלב AI בפעילות היומיומית",
+    f3:"סטארטאפים המחפשים הכוונה מעשית ב-ML ו-AI",
+    f4:"צוותים המחפשים הכשרה מעשית ומנטורינג טכני",
+    photo_hint:"הוסף תמונה כאן",
+    role:"מומחה Data ו-AI",
+    wl:"למה לעבוד עם ניצן", wt:"למה לעבוד עם ניצן?",
+    w1t:"ניסיון ML ו-AI אמיתי",         w1s:"מערכות ייצור שנפרסו בתעשיות שונות",
+    w2t:"מסירה מקצה לקצה",              w2s:"מארכיטקטורה ראשונית ועד פריסה מלאה",
+    w3t:"הבנה עסקית וטכנית",            w3s:"גישור בין יעדים עסקיים למערכות סקלביליות",
+    w4t:"פתרונות AI מעשיים",            w4s:"נבנה לשימוש אמיתי — לא רק להדגמה",
+    ch:"נדבר?",
+    cs:"מעוניינים לשתף פעולה? אשמח לחקור כיצד ML ו-AI יכולים ליצור ערך אמיתי לעסק שלכם.",
+    cn:"<strong>ניצן וינטראוב</strong> — Data Tree Labs",
+    foot_brand:"Data Tree Labs\u00a0 ·\u00a0 נוסד על ידי ניצן וינטראוב",
+    fc:"© 2025 Data Tree Labs"
+  }
+};
+
+let lang = localStorage.getItem('dtl-lang') || 'en';
+const HTML_KEYS = new Set(['nav_by','hby','cn']);
+
+function applyLang(l) {
+  lang = l;
+  localStorage.setItem('dtl-lang', l);
+  const root = document.getElementById('html-root');
+  root.lang = l;
+  root.dir  = l === 'he' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    const v = T[l][k];
+    if (v == null) return;
+    if (el.tagName === 'H1') {
+      el.innerHTML = v.replace(/\n/g, '<br>');
+    } else if (HTML_KEYS.has(k)) {
+      el.innerHTML = v;
+    } else {
+      el.textContent = v;
+    }
+  });
+  document.querySelectorAll('.lb').forEach(b =>
+    b.classList.toggle('on', b.dataset.lang === l));
+}
+
+document.querySelectorAll('.lb').forEach(b =>
+  b.addEventListener('click', () => applyLang(b.dataset.lang)));
+applyLang(lang);
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade').forEach(el => obs.observe(el));
+</script>
+
+<!-- Tweaks panel mount -->
+<div id="tweaks-root"></div>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "palette": "warm",
+  "density": "balanced",
+  "headingStyle": "editorial"
+}/*EDITMODE-END*/;
+
+const PALETTES = {
+  warm:  { bg:'#FAF9F7', bgW:'#FFFFFF', gold:'#C8A46B', goldR:200,goldG:164,goldB:107, btn:'#1A2238', btnHov:'#25325A', border:'#DDD6CC', borderS:'#E7E1D8' },
+  stone: { bg:'#F3EDE5', bgW:'#FBF8F4', gold:'#B08A50', goldR:176,goldG:138,goldB:80,  btn:'#2C1E0F', btnHov:'#3D2A15', border:'#D9CEBF', borderS:'#E5DDD2' },
+  crisp: { bg:'#F6F8FA', bgW:'#FFFFFF', gold:'#4A7FA8', goldR:74, goldG:127,goldB:168, btn:'#152640', btnHov:'#1E3A5F', border:'#D4DCE5', borderS:'#DDE5EE' },
+};
+const DENSITY = {
+  airy:     { sec:'112px', card:'34px 28px 28px', gap:'18px' },
+  balanced: { sec:'96px',  card:'28px 24px 24px', gap:'14px' },
+  compact:  { sec:'64px',  card:'18px 16px 16px', gap:'10px' },
+};
+const HEADING = {
+  editorial: { wt:'600', ls:'-0.03em', lh:'1.07' },
+  refined:   { wt:'400', ls:'0.005em', lh:'1.14' },
+  strong:    { wt:'700', ls:'-0.04em', lh:'1.03' },
+};
+
+function applyTweaks(t) {
+  const r = document.documentElement;
+  const p = PALETTES[t.palette]    || PALETTES.warm;
+  const d = DENSITY[t.density]     || DENSITY.balanced;
+  const h = HEADING[t.headingStyle]|| HEADING.editorial;
+  r.style.setProperty('--bg',       p.bg);
+  r.style.setProperty('--bg-w',     p.bgW);
+  r.style.setProperty('--gold',     p.gold);
+  r.style.setProperty('--gold-lo',  `rgba(${p.goldR},${p.goldG},${p.goldB},.09)`);
+  r.style.setProperty('--gold-bd',  `rgba(${p.goldR},${p.goldG},${p.goldB},.26)`);
+  r.style.setProperty('--border',   p.border);
+  r.style.setProperty('--border-s', p.borderS);
+  let el = document.getElementById('tweak-overrides');
+  if (!el) { el = document.createElement('style'); el.id='tweak-overrides'; document.head.appendChild(el); }
+  el.textContent = `
+    .btn-dark{background:${p.btn}!important;color:rgba(255,255,255,.92)!important;}
+    .btn-dark:hover{background:${p.btnHov}!important;}
+    .lb.on{background:${p.btn}!important;color:rgba(255,255,255,.92)!important;}
+    .hero-h1,.sec-title,.sc-name,.wi-title,.ct-h{font-weight:${h.wt}!important;letter-spacing:${h.ls}!important;line-height:${h.lh}!important;}
+    .section{padding-top:${d.sec}!important;padding-bottom:${d.sec}!important;}
+    .sc{padding:${d.card}!important;}
+    .srv-grid,.for-grid,.why-grid{gap:${d.gap}!important;}
+  `;
+}
+
+function DataTreeTweaks() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  React.useEffect(() => applyTweaks(t), [t]);
+  return (
+    <TweaksPanel>
+      <TweakSection label="Color Palette" />
+      <TweakRadio label="Mood" value={t.palette}
+        options={['warm','stone','crisp']}
+        onChange={v => setTweak('palette', v)} />
+      <TweakSection label="Spacing" />
+      <TweakRadio label="Density" value={t.density}
+        options={['airy','balanced','compact']}
+        onChange={v => setTweak('density', v)} />
+      <TweakSection label="Typography" />
+      <TweakRadio label="Headings" value={t.headingStyle}
+        options={['editorial','refined','strong']}
+        onChange={v => setTweak('headingStyle', v)} />
+    </TweaksPanel>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<DataTreeTweaks />);
+</script>
+</body>
+</html>
